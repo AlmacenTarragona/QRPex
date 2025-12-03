@@ -1,0 +1,2 @@
+# QRPex
+Escaneo de postes
