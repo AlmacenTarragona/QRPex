@@ -1,610 +1,112 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escáner de DataMatrix</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-  <script src="https://unpkg.com/@zxing/library@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-  <style>
-    #video {
-      width: 100%; /* Ajustar el tamaño de la cámara */
-      height: auto; /* Mantener la proporción */
-    }
-    .slider-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .btn-enviar {
-      width: 100%; /* Ampliar el botón de enviar */
-    }
-    .d-flex-center {
-      display: flex;
-      justify-content: center;
-    }
-
-    #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-.corner-box {
-    position: absolute;
-    width: 1.5cm;
-    height: 1.5cm;
-    border: 2px solid red;
-    animation: flash 1s infinite;
-}
-.top-left {
-    top: calc(50% - 0.75cm);
-    left: calc(50% - 0.75cm);
-    border-right: none;
-    border-bottom: none;
-}
-.top-right {
-    top: calc(50% - 0.75cm);
-    left: calc(50% + 0.75cm);
-    border-left: none;
-    border-bottom: none;
-}
-.bottom-left {
-    top: calc(50% + 0.75cm);
-    left: calc(50% - 0.75cm);
-    border-right: none;
-    border-top: none;
-}
-.bottom-right {
-    top: calc(50% + 0.75cm);
-    left: calc(50% + 0.75cm);
-    border-left: none;
-    border-top: none;
-}  
-
-#center-point {
-    position:absolute;
-    width: 10px;
-    height: 10px;
-    background-color: green;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-}
-
-@keyframes flash {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
- #mensaje-duplicado {
-            color: red;
-            font-size: 24px;
-            display: none;
-        }
-
- @keyframes parpadeo {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-  }
-
-.parpadeante {
-    color: red;
-    animation: parpadeo 1s infinite;
-  }
-
-.correcto {
-    color: green;
-  }
-
-
-
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scanner V13 - AI Dynamic Search</title>
+    <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
+    <style>
+        body { margin: 0; padding: 20px; background: #121212; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .scanner-window { position: relative; width: 280px; height: 280px; border-radius: 20px; overflow: hidden; background: #000; border: 3px solid #333; }
+        video { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; object-fit: cover; transition: all 0.5s ease; }
+        
+        .scan-line { position: absolute; width: 100%; height: 3px; background: #0f0; box-shadow: 0 0 15px #0f0; top: 0; z-index: 10; animation: move-line 2s infinite linear; display: none; }
+        @keyframes move-line { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
+        
+        .ai-status { margin-top: 15px; font-size: 0.75rem; color: #ffeb3b; font-weight: bold; height: 30px; text-align: center; width: 280px; }
+        .result-area { margin-top: 10px; width: 280px; padding: 15px; background: #1a1a1a; border-radius: 10px; border-left: 4px solid #0f0; text-align: center; min-height: 40px; word-break: break-all; }
+        button { margin-top: 20px; width: 280px; padding: 16px; background: #0f0; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+    </style>
 </head>
 <body>
-  <div id="form-modal" class="modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Información del Técnico</h5>
-        </div>
-        <div class="modal-body">
-          <form id="technician-form">
-            <div class="form-group">
-              <label for="technician">Técnico</label>
-              <input type="text" class="form-control" id="technician" maxlength="4" required>
-            </div>
-            <div class="form-group">
-              <label for="phone">Teléfono</label>
-              <input type="text" class="form-control" id="phone" maxlength="9" required>
-            </div>
-            <div class="form-group">
-              <label for="email">Correo Electrónico</label>
-              <input type="email" class="form-control" id="email" required>
-            </div>
-            <button type="submit" class="btn btn-primary mt-3">Guardar</button>
-          </form>
-        </div>
-      </div>
+
+    <h2>Escáner Pro <span style="opacity: 0.6; font-size: 0.7em;">V13 DYNAMIC</span></h2>
+
+    <div class="scanner-window">
+        <video id="video" playsinline></video>
+        <div id="laser" class="scan-line"></div>
     </div>
-  </div>
 
-  <div class="container mt-5">
-    <div class="row justify-content-center">
-      <div class="col-sm-12 col-md-8 col-lg-6 shadow p-3">
-        <h5 class="text-center">Escanear código DataMatrix</h5>
-        <div class="row">
-          <div class="col-8 position-relative">
-          <video id="video" class="img-fluid" autoplay></video>
-           
-          <div id="overlay">    
-           
-          </div>
+    <div id="ai-label" class="ai-status"></div>
 
+    <div class="result-area" id="output">Esperando activación...</div>
 
-          <p id="mensaje-duplicado">ESTE VALOR YA EXISTE</p>
-          <div class="d-flex-center mt-3">
-    <button id="btn-scan-qr" class="btn btn-primary mb-3 me-2 d-none">Iniciar Escaneo</button>
-    <button id="btn-stop-qr" class="btn btn-danger mb-3 btn-enviar" disabled>Enviar</button>
-  </div>
-</div>
-          <div class="col-4 slider-container">
-            <label for="brightness-slider" class="form-label">Brillo</label>
-            <input type="range" id="brightness-slider" min="0" max="200" value="100" class="form-range mb-3">
-            <label for="contrast-slider" class="form-label">Contraste</label>
-            <input type="range" id="contrast-slider" min="0" max="200" value="100" class="form-range mb-3">
-            <label for="color-slider" class="form-label">Color</label>
-            <input type="range" id="color-slider" min="0" max="200" value="100" class="form-range">
-            <button id="btn-reset" class="btn btn-warning mt-3">Resetear Escaneos</button>
-          </div>
-        </div>
-        <div class="row mt-3">
-          <table id="TblEsc" class="table table-bordered">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Contenido del Código</th>
-              </tr>
-            </thead>
-            <tbody id="qr-table-body">
-              <!-- Aquí se añadirá el contenido escaneado -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-  <audio id="audioScaner" src="assets/sonido.mp3"></audio>
+    <button id="btn-start" onclick="startScanner()">INICIAR BÚSQUEDA IA</button>
 
-<script>
-  document.addEventListener('DOMContentLoaded', (event) => {
-    // Inicializar el escáner de ZXing
-    const codeReader = new ZXing.BrowserMultiFormatReader();
-    const video = document.getElementById('video');
-    const btnScanQR = document.getElementById('btn-scan-qr');
-    const btnStopQR = document.getElementById('btn-stop-qr');
-    const tableBody = document.getElementById('qr-table-body');
-    const brightnessSlider = document.getElementById('brightness-slider');
-    const contrastSlider = document.getElementById('contrast-slider');
-    const colorSlider = document.getElementById('color-slider');
-    //const cornerBoxes = document.querySelectorAll('.corner-box');
-    //const centerBox = document.querySelector('.center-box');
-    ;
-
-
-    let scanning = false;
-    let scanCount = 0;
-    let lastScanTime = 0;
-    let technician = '';
-    let phone = '';
-    let email = '';
-   
-    // Definir scanData
-    const scanData = [];
-
-
-    // Mostrar el modal al cargar la página
-    const formModal = new bootstrap.Modal(document.getElementById('form-modal'), {
-      backdrop: 'static',
-      keyboard: false
-    });
-    formModal.show();
-
-    document.getElementById('technician-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-      technician = document.getElementById('technician').value;
-      phone = document.getElementById('phone').value;
-      email = document.getElementById('email').value;
-
-      const technicianValid = /^\d{4}$/.test(technician);
-      const phoneValid = /^\d{9}$/.test(phone);
-      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-      if (technicianValid && phoneValid && emailValid) {
-        formModal.hide();
-        encenderCamara();
-      } else {
-        alert('Por favor, ingrese un Técnico de 4 caracteres numéricos, un Teléfono de 9 caracteres numéricos y un Correo Electrónico válido.');
-      }
-    });
-
-
- 
-
-  btnScanQR.addEventListener('click', encenderCamara);
-  btnStopQR.addEventListener('click', cerrarCamara);
-  document.getElementById('btn-reset').addEventListener('click', ResetTabla);
-
-
-  brightnessSlider.addEventListener('input', (event) => {
-    const brightness = event.target.value;
-    video.style.filter = `brightness(${brightness}%)`;
-  });
-contrastSlider.addEventListener('input', (event) => {
-    const contrast = event.target.value;
-    updateVideoFilter();
-  });
-
-  colorSlider.addEventListener('input', (event) => {
-    const color = event.target.value;
-    updateVideoFilter();
-  });
- function updateVideoFilter() {
-    const brightness = brightnessSlider.value;
-    const contrast = contrastSlider.value;
-    const color = colorSlider.value;
-    video.style.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${color}%)`;
-  }
-
-
-function ResetTabla() {
-  if (confirm('¿Quiere BORRAR la tabla con los escaneos efectuados hasta ahora?')) {
-    document.getElementById('qr-table-body').innerHTML = '';
-    scanData = [];
-    scanCount = 0;
-    document.getElementById('btn-stop-qr').disabled = true; // Deshabilitar el botón de enviar
-  }
-}
-
-
-
- 
-//const centerBox = document.querySelector('.center-box');
-//const cornerBoxes = document.querySelectorAll('.corner-box');
-
-function encenderCamara() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-    .then((stream) => {
-      scanning = true;
-      video.srcObject = stream;
-      video.play();
-      video.onloadedmetadata = () => {
-                    
-                   
-      };
-      codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
-        if (result) {
-          agregarFilaTabla(result.getText());
-         // playBeep();
-        }
-        if (err && !(err instanceof ZXing.NotFoundException)) {
-          console.error(err);
-        }
+    <script>
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        const video = document.getElementById('video');
+        const aiLabel = document.getElementById('ai-label');
+        const output = document.getElementById('output');
         
+        let aiInterval;
+        let currentState = 0;
 
+        // Perfiles de Escaneo (IA Adaptativa)
+        const aiProfiles = [
+            { name: "MODO ESTÁNDAR", filter: "none" },
+            { name: "IA: ALTO CONTRASTE (Luz fuerte)", filter: "contrast(1.8) grayscale(1)" },
+            { name: "IA: MODO NOCTURNO (Baja luz)", filter: "brightness(1.5) contrast(1.3)" },
+            { name: "IA: MODO BINARIO (QR Dañado)", filter: "threshold(0.5) grayscale(1) contrast(2)" }, // Simulado con contrast max
+            { name: "IA: ENFOQUE AGRESIVO", filter: "saturate(0) contrast(1.4) brightness(0.9)" }
+        ];
 
-
-      });
-
-
-  
-
-// Establecer las coordenadas del punto central
-         centerPoint.style.left = '100px';
-         centerPoint.style.top = '100px';
-      // Ajustar la región de interés (ROI)
-      video.addEventListener('play', () => {
-        const stream = video.srcObject;
-        const track = stream.getVideoTracks()[0];
-        const settings = track.getSettings();
-
-        const centerBoxRect = centerBox.getBoundingClientRect();
-        const scaleX = settings.width / video.clientWidth;
-        const scaleY = settings.height / video.clientHeight;
-        
-        const roi = {
-          x: centerBoxRect.left * scaleX,
-          y: centerBoxRect.top * scaleY,
-          width: centerBoxRect.width * scaleX,
-          height: centerBoxRect.height * scaleY
-        };
-
-    
-        codeReader.setHints(new Map([
-          [ZXing.DecodeHintType.TRY_HARDER, true],
-          [ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.DATA_MATRIX]],
-          [ZXing.DecodeHintType.NEED_RESULT_POINT_CALLBACK, (point) => {
-            if (point.x >= roi.x && point.x <= roi.x + roi.width &&
-                point.y >= roi.y && point.y <= roi.y + roi.height) {
-              console.log('Point within ROI:', point);
-            }
-          }]
-        ]));
-      });
-    })
-    .catch((err) => {
-      console.error("Error al acceder a la cámara: ", err);
-    });
-}
-
-
-
-    function playBeep() {
-    var context = new (window.AudioContext || window.webkitAudioContext)();
-    var oscillator = context.createOscillator();
-    oscillator.type = 'sine'; // Tipo de onda
-    oscillator.frequency.setValueAtTime(3000, context.currentTime); // Frecuencia en Hz (ajustada a 3000 Hz)
-    oscillator.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.1); // Duración del beep en segundos
-}
-
-
-
-
-
-    function cerrarCamara() {
-      scanning = false;
-      video.srcObject.getTracks().forEach((track) => {
-      track.stop();
-      });
-      // Ocultar las esquinas
-    // cornerBoxes.forEach(box => box.style.display = 'none');
-     
-    //sendData();
-     document.getElementById('btn-stop-qr').disabled = true;
-    enviarCorreo(); // ACORDARSE DE DESTAPAR
-    sendData2(); // ACTUALIZA LA HOJA ESCNEOSQR https://docs.google.com/spreadsheets/d/1--9Sfs29rGDWlHvIcs_kGI2OmlwPMEfNbgoW3o-8gyE/edit?usp=drive_link
-    }
-
-
-    
-
-
-function agregarFilaTabla(contenido) {
-            const mensajeDuplicado = document.getElementById('mensaje-duplicado');
-            // Verificar si el contenido ya existe en la tabla
-            const filas = tableBody.getElementsByTagName('tr');
-            for (let i = 0; i < filas.length; i++) {
-                const celdas = filas[i].getElementsByTagName('td');
-                if (celdas[1] && celdas[1].innerText === contenido) {
-                    mensajeDuplicado.style.display = 'block'; // Mostrar el mensaje
-                    setTimeout(() => {
-                        mensajeDuplicado.style.display = 'none'; // Ocultar el mensaje después de 3 segundos
-                    }, 1000);
-                    return; // Si el contenido ya existe, no añadir la fila
-                }
-            }
-
-            // Verificar si el contenido comienza por "00"
-            if (!contenido.startsWith("00")) {
-                return; // Si el contenido no comienza por "00", no añadir la fila
-            }
-
-            const row = document.createElement('tr');
-            const now = new Date();
-            const formattedDate = now.toLocaleString();
-            row.innerHTML = `
-                <td>${++scanCount}</td>
-                <td>${contenido}</td>
-            `;
-            tableBody.appendChild(row);
-            playBeep(); // solo si se añade la linea
-            // Guardar los datos del escaneo para el correo
-            scanData.push({
-                scanCount: scanCount,
-                contenido: contenido,
-                formattedDate: formattedDate,
-                technician: technician,
-                phone: phone,
-                email: email
-            });
-
-            // Habilitar el botón de enviar
-            document.getElementById('btn-stop-qr').disabled = false;
+        function playBeep() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
         }
 
-    function enviarCorreo() {
-      let emailBody = `
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Contenido del Código</th>
-              <th>Fecha y Hora</th>
-              <th>Técnico</th>
-              <th>Teléfono</th>
-              <th>Correo</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
+        async function startScanner() {
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('laser').style.display = 'block';
+            aiLabel.innerText = aiProfiles[0].name;
 
-      scanData.forEach(data => {
-        emailBody += `
-          <tr>
-            <td>${data.scanCount}</td>
-            <td>${data.contenido}</td>
-            <td>${data.formattedDate}</td>
-            <td>${data.technician}</td>
-            <td>${data.phone}</td>
-            <td>${data.email}</td>
-          </tr>
-        `;
-      });
+            // Iniciar ciclo de cambio de ajustes cada 6 segundos
+            aiInterval = setInterval(rotateAIProfiles, 6000);
 
-      emailBody += `
-          </tbody>
-        </table>
-      `;
-       //emailBody=emailBody + "</body>";
-      const url = `https://script.google.com/macros/s/AKfycbyPi9iWrj8_imlIUeBmGXk4c6SyMdtco4jUkXhrW3vAOrvFoNEXZUgk6WhpcJFByLbUJg/exec`;
-      
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-          email: email,
-          subject: technician + ' Datos del QR Escaneados',
-          message:  'Buenas tardes, adjunto tabla con material escaneado por el técnico ' + technician + '<br> </br>' + ' Saludos.'+'<br> </br>'+'<br> </br>'+ emailBody
-        })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.text();
-      })
-      .then(data => {
-        console.log('Correo enviado:', data);
-        console.log('Datos enviados:', emailBody);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-    }
+            try {
+                const devices = await codeReader.listVideoInputDevices();
+                const backCamera = devices.find(d => /back|trasera|rear/i.test(d.label)) || devices[0];
 
-
-function sendData2() {
-    // Convertir scanData a un array de arrays
-    const dataArray = scanData.map(item => [
-        item.scanCount,
-        item.contenido,
-        item.formattedDate,
-        item.technician,
-        item.phone,
-        item.email
-    ]);
-
-    const table = document.getElementById('TblEsc');
-    const data = [];
-
-    // Recorrer la tabla y obtener los datos
-    for (let i = 1; i < table.rows.length; i++) {
-        const row = table.rows[i];
-        const rowData = [];
-        for (let j = 0; j < row.cells.length; j++) {
-            rowData.push(row.cells[j].innerText);
-        }
-        data.push(rowData);
-    }
-
-    // Función para dividir los datos en bloques
-    function splitData(data, chunkSize) {
-        const result = [];
-        for (let i = 0; i < data.length; i += chunkSize) {
-            result.push(data.slice(i, i + chunkSize));
-        }
-        return result;
-    }
-
-    // Dividir los datos en bloques de 40 líneas
-    const chunks = splitData(dataArray, 40);
-
-    // Obtener el elemento del mensaje
-    const statusMessage = document.getElementById('mensaje-duplicado');
-
-    // Mostrar mensaje de "Enviando datos..." en rojo parpadeante
-    statusMessage.textContent = 'Enviando datos...';
-    statusMessage.classList.add('parpadeante');
-    statusMessage.style.display = 'block';
-
-    // Función para enviar cada bloque de datos
-    function sendChunk(chunk, index) {
-        const url = 'https://script.google.com/macros/s/AKfycbxLejZCRAkGJH0r2uEh__sHnlpAjjjJVXOKnnUNBbOgZrnB-MFQgiT-lXZF3oaf2hRfBQ/exec' +
-                    '?data=' + encodeURIComponent(JSON.stringify(chunk));
-
-        fetch(url)
-            .then(response => response.text())
-            .then(result => {
-                console.log('Respuesta del bloque ' + (index + 1) + ': ' + result);
-                // Enviar el siguiente bloque si existe
-                if (index + 1 < chunks.length) {
-                    sendChunk(chunks[index + 1], index + 1);
-                } else {
-                    // Mostrar mensaje de "Datos enviados correctamente" en verde
-                    statusMessage.textContent = 'Datos enviados correctamente.';
-                    statusMessage.classList.remove('parpadeante');
-                    statusMessage.classList.add('correcto');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                statusMessage.textContent = 'Error al enviar los datos. Verifica la consola para más detalles.';
-                statusMessage.classList.remove('parpadeante');
-            });
-    }
-
-    // Enviar el primer bloque
-    if (chunks.length > 0) {
-        sendChunk(chunks[0], 0);
-    }
-}
-
-function sendData() {
-
-//alert(' ESCANDATA: ' + JSON.stringify(scanData));
-            // Convertir scanData a un array de arrays
-    const dataArray = scanData.map(item => [
-        item.scanCount,
-        item.contenido,
-        item.formattedDate,
-        item.technician,
-        item.phone,
-        item.email
-    ]);
-
-    // Mostrar el valor de dataArray en un alert
-   // alert(JSON.stringify(dataArray));
-
-            const table = document.getElementById('TblEsc');
-            const data = [];
-
-            // Recorrer la tabla y obtener los datos
-            for (let i = 1; i < table.rows.length; i++) {
-                const row = table.rows[i];
-     
-                const rowData = [];
-                for (let j = 0; j < row.cells.length; j++) {
-                    rowData.push(row.cells[j].innerText);
-                }
-                data.push(rowData);
-            }
-           // alert(JSON.stringify(data));
-          
-            // Construir la URL con los datos de la tabla
-            const url = 'https://script.google.com/macros/s/AKfycbxLejZCRAkGJH0r2uEh__sHnlpAjjjJVXOKnnUNBbOgZrnB-MFQgiT-lXZF3oaf2hRfBQ/exec' +
-                       '?data=' + encodeURIComponent(JSON.stringify(dataArray));  // ?data=' + encodeURIComponent(JSON.stringify(dataArray));
-             
-
-            // Hacer la solicitud GET
-            fetch(url)
-                .then(response => response.text())
-                .then(result => {
-                    alert('respuesta: ' + result); // Muestra la respuesta del script
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al enviar los datos. Verifica la consola para más detalles.');
+                codeReader.decodeFromVideoDevice(backCamera.deviceId, 'video', (result, err) => {
+                    if (result) {
+                        clearInterval(aiInterval); // Detener rotación al tener éxito
+                        resetIA();
+                        output.innerText = result.text;
+                        playBeep();
+                        if (navigator.vibrate) navigator.vibrate(100);
+                    }
                 });
+            } catch (e) {
+                output.innerText = "Error: " + e.message;
+            }
         }
 
+        function rotateAIProfiles() {
+            currentState = (currentState + 1) % aiProfiles.length;
+            const profile = aiProfiles[currentState];
+            
+            // Aplicar cambios visuales
+            aiLabel.style.opacity = 0;
+            setTimeout(() => {
+                aiLabel.innerText = `🤖 ${profile.name}...`;
+                video.style.filter = profile.filter;
+                aiLabel.style.opacity = 1;
+            }, 300);
+            
+            console.log(`Cambiando a perfil: ${profile.name}`);
+        }
 
-  });
-</script>
+        function resetIA() {
+            aiLabel.innerText = "✅ CÓDIGO DETECTADO";
+            aiLabel.style.color = "#0f0";
+            video.style.filter = "none";
+        }
+    </script>
 </body>
 </html>
