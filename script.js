@@ -378,53 +378,77 @@ function closeModal() {
     modalOverlay.classList.add('hidden');
 }
 
-// ENVÍO DATOS (TÉCNICA DE IFRAME OCULTO - SILENCIOSO Y EFECTIVO)
+// ENVÍO DATOS (TÉCNICA DE REDUNDANCIA: FORM + FETCH FALLBACK)
 function sendDataToGoogle() {
-    if (readings.length === 0) return alert("Nada que enviar");
+    if (readings.length === 0) {
+        showModal("⚠️", "Vacío", "No hay lecturas para enviar.", true, false, 'error');
+        return;
+    }
 
-    // 1. Mostrar Modal Informativo
-    showModal("⏳", "Enviando...", "Registrando datos de forma segura...", false, true);
+    // Previsualización de los códigos para el usuario
+    const itemsList = readings.map(r => `• ${r.code}`).join('\n');
+    const summary = `Se enviarán ${readings.length} registros:\n\n${itemsList}\n\n¿Deseas continuar?`;
 
-    const dataToSend = readings.map(r => [
-        r.installer, r.actuation, r.code, new Date(r.id).toLocaleString('es-ES')
+    showModal(
+        "📤",
+        "Confirmar Envío",
+        summary,
+        true,
+        false,
+        'info',
+        () => actuallySend(),
+        "CANCELAR"
+    );
+}
+
+function actuallySend() {
+    showModal("⏳", "Enviando...", "Sincronizando con Google Sheets...", false, true);
+
+    // Formatear datos: Enviamos solo 3 columnas (Instalador, Actuación, Código)
+    // El script de Google añade la fecha automáticamente.
+    const dataToSend = readings.map(item => [
+        item.installer,
+        item.actuation,
+        item.code
     ]);
 
-    // 2. Crear un Formulario Dinámico Invisible
+    const jsonPayload = JSON.stringify(dataToSend);
+    const fullUrl = `${APPS_SCRIPT_URL}?data=${encodeURIComponent(jsonPayload)}`;
+
+    // MÉTODO 1: Formulario invisible (Muy compatible)
     const form = document.createElement('form');
     form.method = 'GET';
     form.action = APPS_SCRIPT_URL;
-    form.target = 'silent-sender'; // Envia al iframe oculto puesto en el HTML
+    form.target = 'silent-sender';
 
     const input = document.createElement('input');
     input.type = 'hidden';
     input.name = 'data';
-    input.value = JSON.stringify(dataToSend);
+    input.value = jsonPayload;
     form.appendChild(input);
-
     document.body.appendChild(form);
-
-    // 3. Enviar
     form.submit();
 
-    // 4. Feedback y limpieza (esperamos un poco para simular carga)
-    setTimeout(() => {
-        showModal("✅", "¡Enviado!", "Los datos se han registrado correctamente.", true, false);
+    // MÉTODO 2: Image Beacon (Como respaldo silencioso si el form falla)
+    const beacon = new Image();
+    beacon.src = fullUrl;
 
-        // Limpiamos todo y volvemos al inicio
+    // Feedback visual tras un breve retardo
+    setTimeout(() => {
+        showModal("✅", "¡Éxito!", "Los datos se han enviado correctamente.", true, false, 'success');
+
+        // Limpieza
         readings = [];
         saveAndRender();
 
+        // Reset de campos y vuelta a inicio
         installerInput.value = '';
         actuationInput.value = '';
         installerInput.disabled = false;
         actuationInput.disabled = false;
 
-        stopCamera(false); // Volver a pantalla de inicio
+        stopCamera(false);
 
-        // Re-habilitamos el instalador por si desea cambiar de técnico después de enviar
-        installerInput.disabled = false;
-
-        // Borrar el formulario temporal del DOM
-        document.body.removeChild(form);
-    }, 2500);
+        if (form.parentNode) document.body.removeChild(form);
+    }, 2000);
 }

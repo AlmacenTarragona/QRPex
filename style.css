@@ -479,6 +479,8 @@ td:nth-child(4) {
     color: var(--text-muted);
     margin-bottom: 25px;
     font-size: 1rem;
+    white-space: pre-line;
+    /* Permite saltos de línea */
 }
 
 #modal-close-btn {
