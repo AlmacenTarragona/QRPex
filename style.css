@@ -50,7 +50,8 @@ body {
 
 /* HEADER */
 header {
-    padding: 15px 20px;
+    padding: 5px 15px;
+    /* Reducido de 15px/20px */
     background: var(--bg-card);
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -152,8 +153,8 @@ h1 {
 /* WORKSPACE SPLIT VIEW */
 .camera-pane {
     position: relative;
-    height: 35vh;
-    /* Reducido de 40vh a 35vh para ganar espacio abajo */
+    height: 30vh;
+    /* Reducido al 30% */
     background: #000;
     overflow: hidden;
 }
@@ -174,9 +175,9 @@ h1 {
 /* CAMERA CONTROLS (Panel independiente) */
 .camera-controls {
     background: #181818;
-    padding: 4px 15px;
-    /* Reducido al mínimo */
-    border-bottom: 2px solid var(--border);
+    padding: 2px 15px;
+    /* Ultra compacto */
+    border-bottom: 1px solid var(--border);
     z-index: 10;
 }
 
@@ -216,8 +217,8 @@ h1 {
 .sliders-container {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    /* Reducido al mínimo */
+    gap: 0px;
+    /* Sin espacios entre filas */
 }
 
 .slider-row {
@@ -239,20 +240,21 @@ h1 {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
+    height: 4px;
+    /* Más fino */
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-    /* max-width ELIMINADO para que el slider sea más largo */
+    border-radius: 2px;
 }
 
 .slider-row input::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    /* Reducido de 24 a 18 */
+    height: 18px;
     background: var(--primary);
     border-radius: 50%;
-    border: 2px solid white;
+    border: 1px solid white;
     cursor: pointer;
 }
 
@@ -290,11 +292,11 @@ th {
 }
 
 td {
-    padding: 10px 6px;
-    /* Más compacto */
+    padding: 6px 4px;
+    /* Aún más compacto */
     border-bottom: 1px solid var(--border);
-    font-size: 0.85rem;
-    /* Un pelín más pequeño para que quepa todo */
+    font-size: 0.8rem;
+    /* Más pequeño para móviles */
 }
 
 /* Ajuste de anchos para que el código y papelera se vean bien */
@@ -356,14 +358,14 @@ td:nth-child(4) {
 
 /* ACTION BAR */
 .action-bar {
-    padding: 8px 15px;
-    /* Reducido rrelleno */
+    padding: 5px 15px;
+    /* Mínimo relleno */
     background: #181818;
     border-top: 1px solid var(--border);
     display: flex;
-    gap: 12px;
-    min-height: 55px;
-    /* Reducido de 70 a 55 */
+    gap: 10px;
+    min-height: 50px;
+    /* Reducido al mínimo funcional */
 }
 
 .icon-btn-large {
