@@ -153,8 +153,8 @@ h1 {
 /* WORKSPACE SPLIT VIEW */
 .camera-pane {
     position: relative;
-    height: 38vh;
-    /* Restaurado a un tamaño funcional */
+    height: 32vh;
+    /* Reducido para dar espacio al botón inferior */
     background: #000;
     overflow: hidden;
 }
@@ -375,14 +375,15 @@ td:nth-child(4) {
 
 /* ACTION BAR */
 .action-bar {
-    padding: 5px 15px;
-    /* Mínimo relleno */
+    padding: 10px 15px;
     background: #181818;
     border-top: 1px solid var(--border);
     display: flex;
-    gap: 10px;
-    min-height: 50px;
-    /* Reducido al mínimo funcional */
+    gap: 12px;
+    height: 60px;
+    /* Altura fija para asegurar que no se oculte */
+    flex-shrink: 0;
+    /* Evita que se encoja */
 }
 
 .icon-btn-large {
