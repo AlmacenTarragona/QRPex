@@ -417,9 +417,6 @@ async function actuallySend() {
         const encodedData = encodeURIComponent(jsonPayload);
         const finalUrl = `${APPS_SCRIPT_URL}?data=${encodedData}`;
 
-        // DEBUG: Útil para verificar en el móvil qué está pasando
-        alert("DEBUG MÓVIL:\nIntentando envío Fetch (no-cors)...\nJSON length: " + jsonPayload.length);
-
         // MÉTODO A: Fetch con no-cors (El estándar moderno más fiable en móvil)
         // Usamos no-cors porque Google Apps Script no permite CORS directo, pero la petición llega igual.
         fetch(finalUrl, {
@@ -464,7 +461,6 @@ async function actuallySend() {
         }, 2500);
 
     } catch (error) {
-        alert("ERROR CRÍTICO EN ENVÍO: " + error.message);
         showModal("❌", "Error", "No se pudo realizar el envío: " + error.message, true, false, 'error');
     }
 }
