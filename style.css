@@ -174,7 +174,8 @@ h1 {
 /* CAMERA CONTROLS (Panel independiente) */
 .camera-controls {
     background: #181818;
-    padding: 15px 20px;
+    padding: 10px 15px;
+    /* Reducido de 15px a 10px vertical */
     border-bottom: 2px solid var(--border);
     z-index: 10;
 }
@@ -215,13 +216,14 @@ h1 {
 .sliders-container {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    /* Reducido de 12px a 8px */
 }
 
 .slider-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .slider-row .icon {
@@ -286,10 +288,39 @@ th {
 }
 
 td {
-    padding: 12px 10px;
+    padding: 10px 6px;
+    /* Más compacto */
     border-bottom: 1px solid var(--border);
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+    /* Un pelín más pequeño para que quepa todo */
 }
+
+/* Ajuste de anchos para que el código y papelera se vean bien */
+th:nth-child(1),
+td:nth-child(1) {
+    width: 25%;
+}
+
+/* Instalador */
+th:nth-child(2),
+td:nth-child(2) {
+    width: 30%;
+}
+
+/* Actuación */
+th:nth-child(3),
+td:nth-child(3) {
+    width: 35%;
+}
+
+/* Código */
+th:nth-child(4),
+td:nth-child(4) {
+    width: 10%;
+    text-align: right;
+}
+
+/* Papelera */
 
 .code-cell {
     font-family: monospace;
@@ -321,11 +352,14 @@ td {
 
 /* ACTION BAR */
 .action-bar {
-    padding: 15px;
+    padding: 10px 15px;
+    /* Reducido un poco */
     background: #181818;
     border-top: 1px solid var(--border);
     display: flex;
-    gap: 15px;
+    gap: 12px;
+    min-height: 70px;
+    /* Asegura altura para el botón */
 }
 
 .icon-btn-large {

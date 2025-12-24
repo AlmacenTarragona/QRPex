@@ -286,7 +286,6 @@ function renderTable() {
     readings.forEach(item => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${item.timestamp}</td>
              <td>${item.installer}</td>
             <td>${item.actuation}</td>
             <td class="code-cell">${item.code}</td>
