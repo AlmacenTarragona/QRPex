@@ -401,57 +401,70 @@ function sendDataToGoogle() {
     );
 }
 
-function actuallySend() {
+async function actuallySend() {
     showModal("⏳", "Enviando...", "Sincronizando con Google Sheets...", false, true);
 
-    // Formatear datos: Enviamos 4 columnas (Instalador, Actuación, Código, Hora)
-    const dataToSend = readings.map(item => [
-        item.installer,
-        item.actuation,
-        item.code,
-        new Date(item.id).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    ]);
+    try {
+        // Formatear datos: 4 columnas
+        const dataToSend = readings.map(item => [
+            item.installer,
+            item.actuation,
+            item.code,
+            new Date(item.id).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        ]);
 
-    const jsonPayload = JSON.stringify(dataToSend);
-    const fullUrl = `${APPS_SCRIPT_URL}?data=${encodeURIComponent(jsonPayload)}`;
+        const jsonPayload = JSON.stringify(dataToSend);
+        const encodedData = encodeURIComponent(jsonPayload);
+        const finalUrl = `${APPS_SCRIPT_URL}?data=${encodedData}`;
 
-    // DEBUG: Mostramos exactamente qué se va a enviar para verificar la Hora
-    alert("DEBUG ENVÍO (CON HORA):\n\nURL:\n" + APPS_SCRIPT_URL + "\n\nJSON:\n" + jsonPayload);
+        // DEBUG: Útil para verificar en el móvil qué está pasando
+        alert("DEBUG MÓVIL:\nIntentando envío Fetch (no-cors)...\nJSON length: " + jsonPayload.length);
 
-    // MÉTODO 1: Formulario invisible (Muy compatible)
-    const form = document.createElement('form');
-    form.method = 'GET';
-    form.action = APPS_SCRIPT_URL;
-    form.target = 'silent-sender';
+        // MÉTODO A: Fetch con no-cors (El estándar moderno más fiable en móvil)
+        // Usamos no-cors porque Google Apps Script no permite CORS directo, pero la petición llega igual.
+        fetch(finalUrl, {
+            method: 'GET',
+            mode: 'no-cors',
+            cache: 'no-cache'
+        }).then(() => {
+            console.log("Fetch primario enviado.");
+        }).catch(err => {
+            console.error("Error en Fetch, intentando fallback...", err);
+            // Fallback: Image Beacon
+            const img = new Image();
+            img.src = finalUrl;
+        });
 
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'data';
-    input.value = jsonPayload;
-    form.appendChild(input);
-    document.body.appendChild(form);
-    form.submit();
+        // MÉTODO B: Formulario clásico (Como respaldo absoluto)
+        const form = document.createElement('form');
+        form.method = 'GET';
+        form.action = APPS_SCRIPT_URL;
+        form.target = 'silent-sender';
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'data';
+        input.value = jsonPayload;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
 
-    // MÉTODO 2: Image Beacon (Como respaldo silencioso si el form falla)
-    const beacon = new Image();
-    beacon.src = fullUrl;
+        // Esperar un poco para asegurar que se procesen las peticiones
+        setTimeout(() => {
+            showModal("✅", "¡Éxito!", "Los datos se han enviado correctamente.", true, false, 'success');
 
-    // Feedback visual tras un breve retardo
-    setTimeout(() => {
-        showModal("✅", "¡Éxito!", "Los datos se han enviado correctamente.", true, false, 'success');
+            // Limpieza y Reset
+            readings = [];
+            saveAndRender();
+            installerInput.value = '';
+            actuationInput.value = '';
+            installerInput.disabled = false;
+            actuationInput.disabled = false;
+            stopCamera(false);
+            if (form.parentNode) document.body.removeChild(form);
+        }, 2500);
 
-        // Limpieza
-        readings = [];
-        saveAndRender();
-
-        // Reset de campos y vuelta a inicio
-        installerInput.value = '';
-        actuationInput.value = '';
-        installerInput.disabled = false;
-        actuationInput.disabled = false;
-
-        stopCamera(false);
-
-        if (form.parentNode) document.body.removeChild(form);
-    }, 2000);
+    } catch (error) {
+        alert("ERROR CRÍTICO EN ENVÍO: " + error.message);
+        showModal("❌", "Error", "No se pudo realizar el envío: " + error.message, true, false, 'error');
+    }
 }
