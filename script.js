@@ -404,16 +404,19 @@ function sendDataToGoogle() {
 function actuallySend() {
     showModal("⏳", "Enviando...", "Sincronizando con Google Sheets...", false, true);
 
-    // Formatear datos: Enviamos solo 3 columnas (Instalador, Actuación, Código)
-    // El script de Google añade la fecha automáticamente.
+    // Formatear datos: Enviamos 4 columnas (Instalador, Actuación, Código, Hora)
     const dataToSend = readings.map(item => [
         item.installer,
         item.actuation,
-        item.code
+        item.code,
+        new Date(item.id).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
     ]);
 
     const jsonPayload = JSON.stringify(dataToSend);
     const fullUrl = `${APPS_SCRIPT_URL}?data=${encodeURIComponent(jsonPayload)}`;
+
+    // DEBUG: Mostramos exactamente qué se va a enviar para verificar la Hora
+    alert("DEBUG ENVÍO (CON HORA):\n\nURL:\n" + APPS_SCRIPT_URL + "\n\nJSON:\n" + jsonPayload);
 
     // MÉTODO 1: Formulario invisible (Muy compatible)
     const form = document.createElement('form');
