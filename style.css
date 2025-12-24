@@ -152,8 +152,8 @@ h1 {
 /* WORKSPACE SPLIT VIEW */
 .camera-pane {
     position: relative;
-    height: 40vh;
-    /* Reducido un poco para dar espacio a los controles extra */
+    height: 35vh;
+    /* Reducido de 40vh a 35vh para ganar espacio abajo */
     background: #000;
     overflow: hidden;
 }
@@ -174,8 +174,8 @@ h1 {
 /* CAMERA CONTROLS (Panel independiente) */
 .camera-controls {
     background: #181818;
-    padding: 10px 15px;
-    /* Reducido de 15px a 10px vertical */
+    padding: 4px 15px;
+    /* Reducido al mínimo */
     border-bottom: 2px solid var(--border);
     z-index: 10;
 }
@@ -216,8 +216,8 @@ h1 {
 .sliders-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    /* Reducido de 12px a 8px */
+    gap: 2px;
+    /* Reducido al mínimo */
 }
 
 .slider-row {
@@ -227,8 +227,10 @@ h1 {
 }
 
 .slider-row .icon {
-    font-size: 1.2rem;
-    width: 25px;
+    font-size: 1rem;
+    /* Reducido de 1.2 a 1 */
+    width: 20px;
+    /* Reducido de 25 a 20 */
     text-align: center;
     flex-shrink: 0;
 }
@@ -298,10 +300,11 @@ td {
 /* Ajuste de anchos para que el código y papelera se vean bien */
 th:nth-child(1),
 td:nth-child(1) {
-    width: 25%;
+    width: 15%;
+    /* Reducido para INST */
 }
 
-/* Instalador */
+/* INST */
 th:nth-child(2),
 td:nth-child(2) {
     width: 30%;
@@ -310,7 +313,8 @@ td:nth-child(2) {
 /* Actuación */
 th:nth-child(3),
 td:nth-child(3) {
-    width: 35%;
+    width: 45%;
+    /* Aumentado para el código */
 }
 
 /* Código */
@@ -352,14 +356,14 @@ td:nth-child(4) {
 
 /* ACTION BAR */
 .action-bar {
-    padding: 10px 15px;
-    /* Reducido un poco */
+    padding: 8px 15px;
+    /* Reducido rrelleno */
     background: #181818;
     border-top: 1px solid var(--border);
     display: flex;
     gap: 12px;
-    min-height: 70px;
-    /* Asegura altura para el botón */
+    min-height: 55px;
+    /* Reducido de 70 a 55 */
 }
 
 .icon-btn-large {
