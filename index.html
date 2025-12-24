@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lector DM Industrial</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- HEADER SOLO VISIBLE EN SETUP -->
+        <header id="main-header">
+            <div class="header-titles">
+                <h1>ESCANER DE POSTES</h1>
+                <span class="sub-header">Almacen Teleco Tarragona</span>
+            </div>
+            <button id="settings-btn">⚙️</button>
+        </header>
+
+        <!-- PANTALLA 1: CONFIGURACIÓN -->
+        <div id="setup-form" class="screen active">
+            <div class="form-content">
+                <div class="input-group">
+                    <label>Código Instalador</label>
+                    <input type="text" id="installer-code" placeholder="Ej. INST-01">
+                </div>
+                <div class="input-group">
+                    <label>Nº Actuación</label>
+                    <input type="text" id="actuation-code" placeholder="Ej. ACT-2024">
+                </div>
+            </div>
+            <button id="start-scan-btn" class="big-btn start">
+                📸 COMENZAR ESCANEO
+            </button>
+        </div>
+
+        <!-- PANTALLA 2: WORKSPACE (ESCÁNER + TABLA) -->
+        <div id="workspace-container" class="screen hidden">
+
+            <!-- PANE SUPERIOR: CÁMARA -->
+            <div class="camera-pane">
+                <div id="reader-container">
+                    <div id="reader"></div>
+                </div>
+            </div>
+
+            <!-- Panel de Controles (Fuera de la zona visual) -->
+            <div class="camera-controls">
+                <div class="sliders-container">
+                    <!-- ZOOM (Hardware) -->
+                    <div class="slider-row" id="zoom-row" style="display:none;">
+                        <span class="icon">🔍</span>
+                        <input type="range" id="zoom-slider" min="1" max="5" step="0.1">
+                    </div>
+                    <!-- BRILLO (CSS Filter) -->
+                    <div class="slider-row">
+                        <span class="icon">☀️</span>
+                        <input type="range" id="brightness-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <button id="torch-btn" class="icon-btn tiny" disabled>🔦</button>
+                    </div>
+                    <!-- CONTRASTE (CSS Filter) -->
+                    <div class="slider-row">
+                        <span class="icon">🌓</span>
+                        <input type="range" id="contrast-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <button id="stop-scan-btn" class="icon-btn tiny danger">↩️</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANE INFERIOR: TABLA -->
+            <div class="table-pane">
+                <div class="table-scroll">
+                    <table id="data-table">
+                        <thead>
+                            <tr>
+                                <th>HORA</th>
+                                <th>INSTALADOR</th>
+                                <th>ACTUACIÓN</th>
+                                <th>CÓDIGO</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                    </table>
+                    <div id="empty-state">
+                        <p>No hay lecturas aún</p>
+                        <small>Apunta al código DataMatrix</small>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button id="reset-btn" class="icon-btn-large secondary">🗑️</button>
+                    <button id="send-btn" class="text-btn-large primary">ENVIAR A GOOGLE 📤</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- PANEL MODAL DE ESTADO -->
+    <div id="status-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon">🚀</div>
+            <h3 id="modal-title">Enviando...</h3>
+            <p id="modal-message">Contactando con Google...</p>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="big-btn secondary hidden">CANCELAR</button>
+                <button id="modal-close-btn" class="big-btn">ACEPTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IFRAME OCULTO PARA CAPTURAR EL ENVÍO -->
+    <iframe name="silent-sender" id="silent-sender" style="display:none;"></iframe>
+
+    <script src="html5-qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
