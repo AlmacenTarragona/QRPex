@@ -153,8 +153,8 @@ h1 {
 /* WORKSPACE SPLIT VIEW */
 .camera-pane {
     position: relative;
-    height: 30vh;
-    /* Reducido al 30% */
+    height: 38vh;
+    /* Restaurado a un tamaño funcional */
     background: #000;
     overflow: hidden;
 }
@@ -172,22 +172,27 @@ h1 {
 }
 
 /* CAMERA CONTROLS OVERLAY */
-/* CAMERA CONTROLS (Panel Colapsable) */
+/* CAMERA CONTROLS (Panel independiente) */
 .camera-controls {
-    background: #1e1e1e;
-    padding: 10px 15px;
-    border-bottom: 1px solid var(--border);
+    background: #181818;
+    padding: 8px 15px;
+    border-bottom: 2px solid var(--border);
     z-index: 10;
-    transition: all 0.3s ease-in-out;
-    max-height: 200px;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.camera-controls.hidden {
-    max-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    border-bottom-width: 0;
+.controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.main-actions {
+    display: flex;
+    gap: 12px;
 }
 
 /* .top-controls REMOVED */
@@ -226,8 +231,13 @@ h1 {
 .sliders-container {
     display: flex;
     flex-direction: column;
-    gap: 0px;
-    /* Sin espacios entre filas */
+    gap: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.sliders-container.hidden {
+    display: none;
 }
 
 .slider-row {
@@ -249,54 +259,20 @@ h1 {
     flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    height: 4px;
-    /* Más fino */
+    height: 6px;
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 2px;
+    border-radius: 3px;
 }
 
 .slider-row input::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 18px;
-    /* Reducido de 24 a 18 */
-    height: 18px;
+    width: 24px;
+    height: 24px;
     background: var(--primary);
     border-radius: 50%;
-    border: 1px solid white;
+    border: 2px solid white;
     cursor: pointer;
-}
-
-.url-config input {
-    background: #333;
-    border: 1px solid var(--border);
-    color: var(--text-main);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.8rem;
-    width: 100%;
-}
-
-.checkbox-config {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.back-floating-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 20;
-    background: rgba(245, 0, 87, 0.8);
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* TABLE PANE */
@@ -526,31 +502,4 @@ td:nth-child(4) {
 .modal-actions .big-btn {
     flex: 1;
     margin-top: 0;
-}
-
-/* Meoras Visuales adicionales */
-input[type="checkbox"] {
-    accent-color: var(--primary);
-    cursor: pointer;
-}
-
-.form-content {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* Animación de escaneo */
-@keyframes scan-flash {
-    0% {
-        background-color: rgba(0, 230, 118, 0.4);
-    }
-
-    100% {
-        background-color: transparent;
-    }
-}
-
-.scan-active {
-    animation: scan-flash 0.3s ease-out;
 }

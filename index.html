@@ -49,14 +49,17 @@
                 </div>
             </div>
 
-            <!-- Panel de Controles Colapsable (Ahora incluye Ajustes y Sliders) -->
-            <div id="controls-panel" class="camera-controls hidden">
-                <div class="sliders-container">
-                    <!-- URL SCRIPT -->
-                    <div class="slider-row url-config">
-                        <span class="icon">🔗</span>
-                        <input type="text" id="script-url-input" placeholder="URL de Apps Script">
+            <!-- Panel de Controles (Fuera de la zona visual) -->
+            <div class="camera-controls">
+                <div class="controls-header">
+                    <button id="toggle-sliders-btn" class="icon-btn tiny">▼</button>
+                    <div class="main-actions">
+                        <button id="torch-btn" class="icon-btn tiny" disabled>🔦</button>
+                        <button id="stop-scan-btn" class="icon-btn tiny danger">↩️</button>
                     </div>
+                </div>
+
+                <div id="sliders-wrapper" class="sliders-container hidden">
                     <!-- ZOOM (Hardware) -->
                     <div class="slider-row" id="zoom-row" style="display:none;">
                         <span class="icon">🔍</span>
@@ -66,22 +69,14 @@
                     <div class="slider-row">
                         <span class="icon">☀️</span>
                         <input type="range" id="brightness-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-                        <button id="torch-btn" class="icon-btn tiny" disabled>🔦</button>
                     </div>
                     <!-- CONTRASTE (CSS Filter) -->
                     <div class="slider-row">
                         <span class="icon">🌓</span>
                         <input type="range" id="contrast-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-                        <div class="checkbox-config">
-                            <input type="checkbox" id="sound-toggle" checked>
-                            <span class="icon">🔊</span>
-                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Botón para retroceder (Siempre visible en workspace) -->
-            <button id="stop-scan-btn" class="back-floating-btn">↩️</button>
 
             <!-- PANE INFERIOR: TABLA -->
             <div class="table-pane">
@@ -112,26 +107,27 @@
             </div>
         </div>
 
-        <!-- PANEL MODAL DE ESTADO -->
-        <div id="status-modal" class="modal-overlay hidden">
-            <div class="modal-content">
-                <div id="modal-icon" class="modal-icon">🚀</div>
-                <h3 id="modal-title">Enviando...</h3>
-                <p id="modal-message">Contactando con Google...</p>
-                <div class="modal-actions">
-                    <button id="modal-cancel-btn" class="big-btn secondary hidden">CANCELAR</button>
-                    <button id="modal-close-btn" class="big-btn">ACEPTAR</button>
-                </div>
+    </div>
+
+
+    <!-- PANEL MODAL DE ESTADO -->
+    <div id="status-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon">🚀</div>
+            <h3 id="modal-title">Enviando...</h3>
+            <p id="modal-message">Contactando con Google...</p>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="big-btn secondary hidden">CANCELAR</button>
+                <button id="modal-close-btn" class="big-btn">ACEPTAR</button>
             </div>
         </div>
+    </div>
 
-        <!-- ELIMINADO: settings-modal era un modal, ahora es el controls-panel colapsable -->
+    <!-- IFRAME OCULTO PARA CAPTURAR EL ENVÍO -->
+    <iframe name="silent-sender" id="silent-sender" style="display:none;"></iframe>
 
-        <!-- IFRAME OCULTO PARA CAPTURAR EL ENVÍO -->
-        <iframe name="silent-sender" id="silent-sender" style="display:none;"></iframe>
-
-        <script src="html5-qrcode.min.js"></script>
-        <script src="script.js"></script>
+    <script src="html5-qrcode.min.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>
