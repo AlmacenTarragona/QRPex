@@ -1,5 +1,6 @@
 // CONFIGURACIÓN (GOOGLE APPS SCRIPT)
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2wmLDWVOtUOODDo7AFHzTHpBf91mch1SRv4wimwAVy6Exnc7oA5EC_ux4Vhfp492_/exec";
+let APPS_SCRIPT_URL = localStorage.getItem('script_url') || "https://script.google.com/macros/s/AKfycby2wmLDWVOtUOODDo7AFHzTHpBf91mch1SRv4wimwAVy6Exnc7oA5EC_ux4Vhfp492_/exec";
+let soundEnabled = localStorage.getItem('sound_enabled') !== 'false';
 
 // ELEMENTOS DOM
 const setupScreen = document.getElementById('setup-form');
@@ -24,8 +25,11 @@ const brightnessSlider = document.getElementById('brightness-slider');
 const contrastSlider = document.getElementById('contrast-slider');
 
 // Tabla
-const tableBody = document.querySelector('#data-table tbody');
-const emptyState = document.getElementById('empty-state');
+// Ajustes UI
+const settingsBtn = document.getElementById('settings-btn');
+const controlsPanel = document.getElementById('controls-panel');
+const scriptUrlInput = document.getElementById('script-url-input');
+const soundToggle = document.getElementById('sound-toggle');
 
 // ESTADO
 let html5QrCode;
@@ -44,6 +48,10 @@ let audioCtx = null;
 document.addEventListener('DOMContentLoaded', () => {
     html5QrCode = new Html5Qrcode("reader");
     renderTable(); // Inicializa tabla vacía
+
+    // Inicializar valores de ajustes
+    scriptUrlInput.value = APPS_SCRIPT_URL;
+    soundToggle.checked = soundEnabled;
 });
 
 // LISTENERS
@@ -93,6 +101,30 @@ resetBtn.addEventListener('click', () => {
 });
 
 sendBtn.addEventListener('click', sendDataToGoogle);
+
+// TOGGLE PANEL DE CONTROLES
+settingsBtn.addEventListener('click', () => {
+    controlsPanel.classList.toggle('hidden');
+    if (!controlsPanel.classList.contains('hidden')) {
+        settingsBtn.classList.add('active');
+    } else {
+        settingsBtn.classList.remove('active');
+    }
+});
+
+// AUTO-SAVE SETTINGS
+scriptUrlInput.addEventListener('change', () => {
+    const newUrl = scriptUrlInput.value.trim();
+    if (newUrl) {
+        APPS_SCRIPT_URL = newUrl;
+        localStorage.setItem('script_url', newUrl);
+    }
+});
+
+soundToggle.addEventListener('change', () => {
+    soundEnabled = soundToggle.checked;
+    localStorage.setItem('sound_enabled', soundEnabled);
+});
 
 // SLIDERS LISTENERS
 brightnessSlider.addEventListener('input', updateFilters);
@@ -169,8 +201,15 @@ function onScan(decodedText, decodedResult) {
     lastTime = now;
 
     // SONIDO BEEP Y VIBRACIÓN
-    playBeep();
+    if (soundEnabled) playBeep();
     if (navigator.vibrate) navigator.vibrate(200);
+
+    // Efecto visual de escaneo
+    const video = document.querySelector('#reader video');
+    if (video) {
+        video.parentElement.classList.add('scan-active');
+        setTimeout(() => video.parentElement.classList.remove('scan-active'), 300);
+    }
 
     const newItem = {
         id: now,
@@ -206,7 +245,7 @@ function playBeep() {
 }
 
 function playErrorSound() {
-    if (!audioCtx) return;
+    if (!audioCtx || !soundEnabled) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
     const osc = audioCtx.createOscillator();
