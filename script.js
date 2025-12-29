@@ -387,7 +387,7 @@ function sendDataToGoogle() {
 
     // Previsualización de los códigos para el usuario
     const itemsList = readings.map(r => `• ${r.code}`).join('\n');
-    const summary = `Se enviarán ${readings.length} registros:\n\n${itemsList}\n\n¿Deseas continuar?`;
+    const summary = `Se enviarán ${readings.length} registros.\n\n¿Deseas continuar?`;
 
     showModal(
         "📤",
@@ -464,3 +464,4 @@ async function actuallySend() {
         showModal("❌", "Error", "No se pudo realizar el envío: " + error.message, true, false, 'error');
     }
 }
+
