@@ -1,5 +1,5 @@
 // CONFIGURACIÓN (GOOGLE APPS SCRIPT)
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxU8dWZxkyQSv7V34KXok4MLNU4ukhxvlQFxAWOUKbdwpkgH5YHhllsBzE0qgA-Kbtb/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2wmLDWVOtUOODDo7AFHzTHpBf91mch1SRv4wimwAVy6Exnc7oA5EC_ux4Vhfp492_/exec";
 
 // ELEMENTOS DOM
 const setupScreen = document.getElementById('setup-form');
@@ -464,5 +464,6 @@ async function actuallySend() {
         showModal("❌", "Error", "No se pudo realizar el envío: " + error.message, true, false, 'error');
     }
 }
+
 
 
