@@ -502,4 +502,9 @@ td:nth-child(4) {
 .modal-actions .big-btn {
     flex: 1;
     margin-top: 0;
+
+}
+
+.inverted-filter {
+    filter: invert(1) brightness(1.2) contrast(1.2) !important;
 }
