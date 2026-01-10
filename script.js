@@ -1,3 +1,10 @@
+/**
+ * REQUISITO CSS:
+ * .inverted-filter {
+ * filter: invert(1) brightness(1.1) contrast(1.2) !important;
+ * }
+ */
+
 // CONFIGURACIÓN (GOOGLE APPS SCRIPT)
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoyuUmft0lvQsL9-rljoADDZns179nvZ3irQK-hX8Gd1nHR170bcp07Kx7xZe7sqs9/exec";
 
@@ -42,6 +49,10 @@ let isTorchOn = false;
 let lastScanned = null;
 let lastTime = 0;
 
+// ESTADO INVERSIÓN (NUEVO)
+let isInverted = false;
+let inversionInterval = null;
+
 // AUDIO CONTEXT (BEEP)
 let audioCtx = null;
 
@@ -70,7 +81,6 @@ startBtn.addEventListener('click', () => {
 
     currentSettings = { installer: inst, actuation: act };
 
-    // Iniciar Audio Context (requiere interacción usuario)
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     startCamera();
@@ -99,11 +109,9 @@ resetBtn.addEventListener('click', () => {
 
 sendBtn.addEventListener('click', sendDataToGoogle);
 
-// SLIDERS LISTENERS
 brightnessSlider.addEventListener('input', updateFilters);
 contrastSlider.addEventListener('input', updateFilters);
 
-// TOGGLE SLIDERS
 function toggleSliders() {
     const isHidden = slidersWrapper.classList.toggle('hidden');
     toggleSlidersBtn.textContent = isHidden ? '▼' : '▲';
@@ -113,11 +121,28 @@ if (settingsBtn) settingsBtn.addEventListener('click', toggleSliders);
 if (toggleSlidersBtn) toggleSlidersBtn.addEventListener('click', toggleSliders);
 
 function updateFilters() {
+    // Si está en modo invertido, no aplicamos los filtros manuales para evitar conflictos visuales
+    if (isInverted) return; 
+
     const b = brightnessSlider.value;
     const c = contrastSlider.value;
     const video = document.querySelector('#reader video');
     if (video) {
         video.style.filter = `brightness(${b}) contrast(${c})`;
+    }
+}
+
+// FUNCIÓN DE INVERSIÓN (NUEVA)
+function toggleInversionCycle() {
+    const video = document.querySelector('#reader video');
+    if (!video) return;
+
+    isInverted = !isInverted;
+    if (isInverted) {
+        video.classList.add('inverted-filter');
+    } else {
+        video.classList.remove('inverted-filter');
+        updateFilters(); // Volver a filtros de usuario si existen
     }
 }
 
@@ -140,7 +165,11 @@ async function startCamera() {
             onScan,
             (err) => { }
         );
+        
         setTimeout(setupCameraHardware, 500);
+
+        // INICIAR CICLO DE INVERSIÓN AUTOMÁTICA (Cada 4 segundos)
+        inversionInterval = setInterval(toggleInversionCycle, 4000);
 
     } catch (e) {
         console.error(e);
@@ -150,9 +179,17 @@ async function startCamera() {
 }
 
 async function stopCamera(fromBackButton = false) {
+    // LIMPIAR INTERVALO DE INVERSIÓN
+    if (inversionInterval) {
+        clearInterval(inversionInterval);
+        inversionInterval = null;
+    }
+    isInverted = false;
+
     if (html5QrCode && html5QrCode.isScanning) {
         await html5QrCode.stop();
     }
+    
     workspaceScreen.classList.add('hidden');
     setupScreen.classList.remove('hidden');
     isTorchOn = false;
@@ -171,7 +208,6 @@ function onScan(decodedText, decodedResult) {
     const now = Date.now();
     if (decodedText === lastScanned && (now - lastTime < 2000)) return;
 
-    // PREVENCIÓN DE DUPLICADOS
     const isDuplicate = readings.some(r => r.code === decodedText);
     if (isDuplicate) {
         playErrorSound();
@@ -182,7 +218,6 @@ function onScan(decodedText, decodedResult) {
     lastScanned = decodedText;
     lastTime = now;
 
-    // SONIDO BEEP Y VIBRACIÓN
     playBeep();
     if (navigator.vibrate) navigator.vibrate(200);
 
@@ -201,20 +236,15 @@ function onScan(decodedText, decodedResult) {
 function playBeep() {
     if (!audioCtx) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
-
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-
     osc.type = 'square';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
-
     gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
     osc.start();
     osc.stop(audioCtx.currentTime + 0.1);
 }
@@ -222,20 +252,15 @@ function playBeep() {
 function playErrorSound() {
     if (!audioCtx) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
-
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-
-    osc.type = 'sawtooth'; // Sonido más agresivo
+    osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(150, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.3);
-
     gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-
     osc.start();
     osc.stop(audioCtx.currentTime + 0.3);
 }
@@ -282,7 +307,6 @@ async function toggleTorch() {
     }
 }
 
-// VISUALIZACIÓN TABLA
 function saveAndRender() {
     localStorage.setItem('dm_readings', JSON.stringify(readings));
     renderTable();
@@ -290,7 +314,6 @@ function saveAndRender() {
 
 function renderTable() {
     tableBody.innerHTML = '';
-
     if (readings.length === 0) {
         emptyState.style.display = 'block';
         return;
@@ -327,7 +350,6 @@ window.deleteItem = function (id) {
     );
 };
 
-// MODAL ELEMENTS
 const modalOverlay = document.getElementById('status-modal');
 const modalIcon = document.getElementById('modal-icon');
 const modalTitle = document.getElementById('modal-title');
@@ -341,8 +363,6 @@ if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
 function showModal(icon, title, msg, showBtn = false, spin = false, type = 'info', onConfirm = null, cancelTxt = null) {
     if (!modalOverlay) return;
     const content = modalOverlay.querySelector('.modal-content');
-
-    // Resetear clases
     content.classList.remove('error', 'success', 'info');
     if (type) content.classList.add(type);
 
@@ -353,17 +373,14 @@ function showModal(icon, title, msg, showBtn = false, spin = false, type = 'info
     if (spin) modalIcon.classList.add('spinning');
     else modalIcon.classList.remove('spinning');
 
-    // Botón Principal
     if (showBtn) modalCloseBtn.classList.remove('hidden');
     else modalCloseBtn.classList.add('hidden');
 
-    // Resetear click handler (importante si hay callback)
     modalCloseBtn.onclick = () => {
         closeModal();
         if (onConfirm) onConfirm();
     };
 
-    // Botón Cancelar
     if (cancelTxt) {
         modalCancelBtn.textContent = cancelTxt;
         modalCancelBtn.classList.remove('hidden');
@@ -378,15 +395,12 @@ function closeModal() {
     modalOverlay.classList.add('hidden');
 }
 
-// ENVÍO DATOS (TÉCNICA DE REDUNDANCIA: FORM + FETCH FALLBACK)
 function sendDataToGoogle() {
     if (readings.length === 0) {
         showModal("⚠️", "Vacío", "No hay lecturas para enviar.", true, false, 'error');
         return;
     }
 
-    // Previsualización de los códigos para el usuario
-    const itemsList = readings.map(r => `• ${r.code}`).join('\n');
     const summary = `Se enviarán ${readings.length} registros.\n\n¿Deseas continuar?`;
 
     showModal(
@@ -405,7 +419,6 @@ async function actuallySend() {
     showModal("⏳", "Enviando...", "Sincronizando con Google Sheets...", false, true);
 
     try {
-        // Formatear datos: 4 columnas
         const dataToSend = readings.map(item => [
             item.installer,
             item.actuation,
@@ -417,22 +430,15 @@ async function actuallySend() {
         const encodedData = encodeURIComponent(jsonPayload);
         const finalUrl = `${APPS_SCRIPT_URL}?data=${encodedData}`;
 
-        // MÉTODO A: Fetch con no-cors (El estándar moderno más fiable en móvil)
-        // Usamos no-cors porque Google Apps Script no permite CORS directo, pero la petición llega igual.
         fetch(finalUrl, {
             method: 'GET',
             mode: 'no-cors',
             cache: 'no-cache'
-        }).then(() => {
-            console.log("Fetch primario enviado.");
         }).catch(err => {
-            console.error("Error en Fetch, intentando fallback...", err);
-            // Fallback: Image Beacon
             const img = new Image();
             img.src = finalUrl;
         });
 
-        // MÉTODO B: Formulario clásico (Como respaldo absoluto)
         const form = document.createElement('form');
         form.method = 'GET';
         form.action = APPS_SCRIPT_URL;
@@ -445,11 +451,8 @@ async function actuallySend() {
         document.body.appendChild(form);
         form.submit();
 
-        // Esperar un poco para asegurar que se procesen las peticiones
         setTimeout(() => {
             showModal("✅", "¡Éxito!", "Los datos se han enviado correctamente.", true, false, 'success');
-
-            // Limpieza y Reset
             readings = [];
             saveAndRender();
             installerInput.value = '';
@@ -464,7 +467,3 @@ async function actuallySend() {
         showModal("❌", "Error", "No se pudo realizar el envío: " + error.message, true, false, 'error');
     }
 }
-
-
-
-
